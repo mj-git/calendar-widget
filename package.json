@@ -1,0 +1,14 @@
+{
+  "name": "calendarpoc",
+  "version": "1.0.0",
+  "description": "calendar poc",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mohit",
+  "license": "ISC",
+  "dependencies": {
+    "fullcalendar": "^3.3.1"
+  }
+}
