@@ -14,16 +14,100 @@
                 start: '2017-05-01'
             }
         ];
+        $.each(companyHolidaysList, function (index, val) {
+            val.eventType = 'CH';
+        });
+        var paidTOList = [
+            {
+                title: 'All Day Event',
+                start: '2017-04-01'
+            },
+            {
+                title: 'Long Event',
+                start: '2017-04-07',
+                end: '2017-04-10'
+            },
+            {
+                id: 999,
+                title: 'Repeating Event',
+                start: '2017-04-09'
+            },
+            {
+                id: 999,
+                title: 'Repeating Event',
+                start: '2017-04-16'
+            },
+            {
+                title: 'Conference',
+                start: '2017-04-11',
+                end: '2017-04-13'
+            },
+            {
+                title: 'Meeting',
+                start: '2017-04-12',
+                end: '2017-04-12'
+            },
+            {
+                title: 'Lunch',
+                start: '2017-04-12'
+            },
+            {
+                title: 'Meeting',
+                start: '2017-04-12'
+            },
+            {
+                title: 'Happy Hour',
+                start: '2017-04-12'
+            },
+            {
+                title: 'Dinner',
+                start: '2017-04-12'
+            },
+            {
+                title: 'Birthday Party',
+                start: '2017-04-13'
+            },
+            {
+                title: 'Click for Google',
+                url: 'http://google.com/',
+                start: '2017-04-28'
+            },
+            {
+                title: 'Labour Day',
+                start: '2017-05-01'
+            }
+        ];
+        $.each(paidTOList, function (index, val) {
+            val.eventType = 'PTO';
+        });
+        var eventsList = companyHolidaysList.concat(paidTOList)
 
-        var isCompanyHoliday = function (date) {
-            for (var holiday = 0; holiday < companyHolidaysList.length; holiday++) {
-                var b = moment(companyHolidaysList[holiday].start);
-                if (b.diff(date) === 0) {
-                    return true;
+        var getCellColor = function (date) {
+            for (var holiday = 0; holiday < eventsList.length; holiday++) {
+                var eventDate = moment(eventsList[holiday].start);
+                if (eventDate.diff(date) === 0) {
+                    if (eventsList[holiday].eventType === 'PTO') {
+                        return 'orange';
+                    }
+                    else if (eventsList[holiday].eventType === 'CH') {
+                        return 'yellow';
+                    }
                 }
+
             }
             return false;
         };
+        var isResourceSelectable = function (date) {
+            var flag = true;
+            for (var holiday = 0; holiday < eventsList.length; holiday++) {
+                var eventDate = moment(eventsList[holiday].start);
+                if (eventDate.diff(date) === 0) {
+                    flag = false;
+                    break;
+                }
+            }
+            return flag;
+        }
         $(document).ready(function () {
 
 
@@ -39,6 +123,7 @@
                 editable: true,
                 selectable: true,
                 selectHelper: true,
+                selectOverlap: false,
                 select: function (start, end) {
                     var title = prompt('Add Timeoff');
                     var eventData;
@@ -52,67 +137,11 @@
                     }
                     $('#calendar').fullCalendar('unselect');
                 },
+                selectAllow: function (selectInfo) {
+                    return isResourceSelectable(selectInfo.start);
+                },
                 eventLimit: true, // allow "more" link when too many events
-                events: [
-                    {
-                        title: 'All Day Event',
-                        start: '2017-04-01'
-                    },
-                    {
-                        title: 'Long Event',
-                        start: '2017-04-07',
-                        end: '2017-04-10'
-                    },
-                    {
-                        id: 999,
-                        title: 'Repeating Event',
-                        start: '2017-04-09'
-                    },
-                    {
-                        id: 999,
-                        title: 'Repeating Event',
-                        start: '2017-04-16'
-                    },
-                    {
-                        title: 'Conference',
-                        start: '2017-04-11',
-                        end: '2017-04-13'
-                    },
-                    {
-                        title: 'Meeting',
-                        start: '2017-04-12',
-                        end: '2017-04-12'
-                    },
-                    {
-                        title: 'Lunch',
-                        start: '2017-04-12'
-                    },
-                    {
-                        title: 'Meeting',
-                        start: '2017-04-12'
-                    },
-                    {
-                        title: 'Happy Hour',
-                        start: '2017-04-12'
-                    },
-                    {
-                        title: 'Dinner',
-                        start: '2017-04-12'
-                    },
-                    {
-                        title: 'Birthday Party',
-                        start: '2017-04-13'
-                    },
-                    {
-                        title: 'Click for Google',
-                        url: 'http://google.com/',
-                        start: '2017-04-28'
-                    },
-                    {
-                        title: 'Labour Day',
-                        start: '2017-05-01'
-                    }
-                ],
+                events: eventsList,
                 eventClick: function (calEvent, jsEvent, view) {
                     jsEvent.stopPropagation();
                     if (jsEvent.target.className == 'trash-icon') {
@@ -138,15 +167,11 @@
                 },
                 eventRender: function (event, element, monthView) {
                     //tooltip
-                    if (isCompanyHoliday(event.start)) {
-                        $(element).css('background-color', 'yellow');
-                        $(element).css('border-color', 'yellow');
-                    }
                 },
                 dayRender: function (date, cell) {
-                    if (isCompanyHoliday(date)) {
-                        $(cell).css('background-color', 'yellow');
-                    }
+
+                    $(cell).css('background-color', getCellColor(date));
+
                 },
                 firstDay: 3
 
