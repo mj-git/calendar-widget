@@ -12,74 +12,67 @@
         var companyHolidaysList = [
             {
                 title: 'Labour Day',
-                start: '2017-05-01'
+                start: '2017-05-01',
+                increment: 'Full'
             }
         ];
         $.each(companyHolidaysList, function (index, val) {
             val.eventType = 'CH';
+            if (val.increment !== 'Full') {
+                val.title += ' (' + val.increment + ')';
+            }
         });
         var paidTOList = [
             {
                 title: 'All Day Event',
-                start: '2017-04-01'
+                start: '2017-04-01',
+                increment: 'AM'
             },
             {
                 title: 'Long Event',
                 start: '2017-04-07',
-                end: '2017-04-10'
+                end: '2017-04-10',
+                increment: 'Full'
             },
             {
                 id: 999,
                 title: 'Repeating Event',
-                start: '2017-04-09'
+                start: '2017-04-09',
+                increment: 'Full'
             },
             {
                 id: 999,
                 title: 'Repeating Event',
-                start: '2017-04-16'
+                start: '2017-04-16',
+                increment: 'Full'
             },
             {
                 title: 'Conference',
                 start: '2017-04-11',
-                end: '2017-04-13'
-            },
-            {
-                title: 'Meeting',
-                start: '2017-04-12',
-                end: '2017-04-12'
-            },
-            {
-                title: 'Lunch',
-                start: '2017-04-12'
-            },
-            {
-                title: 'Meeting',
-                start: '2017-04-12'
+                end: '2017-04-13',
+                increment: 'PM'
             },
             {
                 title: 'Happy Hour',
-                start: '2017-04-12'
-            },
-            {
-                title: 'Dinner',
-                start: '2017-04-12'
+                start: '2017-04-12',
+                increment: 'AM'
             },
             {
                 title: 'Birthday Party',
-                start: '2017-04-13'
+                start: '2017-04-13',
+                increment: 'PM'
             },
             {
-                title: 'Click for Google',
-                url: 'http://google.com/',
-                start: '2017-04-28'
-            },
-            {
-                title: 'Labour Day',
-                start: '2017-05-01'
+                title: 'Department Day',
+                start: '2017-04-28',
+                increment: 'Full'
             }
         ];
         $.each(paidTOList, function (index, val) {
             val.eventType = 'PTO';
+            if (val.increment !== 'Full') {
+                val.title += ' (' + val.increment + ')';
+            }
         });
         var eventsList = companyHolidaysList.concat(paidTOList)
 
@@ -99,16 +92,25 @@
             return false;
         };
         var isResourceSelectable = function (date) {
-            var flag = true;
             for (var holiday = 0; holiday < eventsList.length; holiday++) {
                 var eventDate = moment(eventsList[holiday].start);
                 if (eventDate.diff(date) === 0) {
-                    flag = false;
-                    break;
+                    return false;
                 }
             }
-            return flag;
-        }
+
+            return true;
+        };
+
+        var removeEventFromEventList = function (event) {
+            for (var evt = 0; evt < eventsList.length; evt++) {
+                if(eventsList[evt].title === event.title) {
+                    eventsList.splice(evt,1);
+                    return;
+                }
+            }
+        };
+
         $(document).ready(function () {
             var initialLocaleCode = 'en';
 
@@ -132,9 +134,13 @@
                         eventData = {
                             title: title,
                             start: start,
-                            end: end
+                            end: end,
+                            eventType: 'PTO'
                         };
                         $('#calendar').fullCalendar('renderEvent', eventData, true); // stick? = true
+                        eventsList.push(eventData);
+                        $('#calendar').fullCalendar('prev');
+                        $('#calendar').fullCalendar('next');
                     }
                     $('#calendar').fullCalendar('unselect');
                 },
@@ -149,6 +155,9 @@
                         var confirmation = confirm("Are you sure you want to delete this event?");
                         if (confirmation) {
                             $('#calendar').fullCalendar('removeEvents', calEvent._id);
+                            removeEventFromEventList(calEvent);
+                            $('#calendar').fullCalendar('prev');
+                            $('#calendar').fullCalendar('next');
                         }
 
                     }
@@ -156,8 +165,9 @@
                         var title = prompt("Do you want to change you Event Title ?", calEvent.title);
                         calEvent.title = title || calEvent.title;
                         $('#calendar').fullCalendar('updateEvent', calEvent);
+                        $('#calendar').fullCalendar('prev');
+                        $('#calendar').fullCalendar('next');
                     }
-                    /**/
 
                 },
                 eventMouseover: function (event, jsEvent, view) {
@@ -168,6 +178,7 @@
                 },
                 eventRender: function (event, element, monthView) {
                     //tooltip
+                    $(element).attr('title', event.title);
                 },
                 dayRender: function (date, cell) {
 
